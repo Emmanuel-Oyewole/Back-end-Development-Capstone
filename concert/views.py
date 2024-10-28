@@ -27,7 +27,7 @@ def signup(request):
         except User.DoesNotExist:
             return render(request, "signup.html", {"form": SignUpForm})
     return render(request, "signup.html", {"form": SignUpForm})
-
+          
 
 
 def index(request):
@@ -52,23 +52,18 @@ def photos(request):
 
 def login_view(request):
     if request.method == "POST":
-        form = LoginForm(request.POST)
-        if form.is_valid():
-            username = form.cleaned_data.get("username")
-            password = form.cleaned_data.get("password")
-            
-            user = authenticate(request, username=username, password=password)
-            if user is not None:
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        try:
+            user = User.objects.get(username=username)
+
+            if user.check_password(password):
                 login(request, user)
-                return redirect(reverse("index"))
-            else:
-                # Invalid login credentials message
-                return render(request, "login.html", {"form": form, "message": "Invalid username or password"})
-    
-    else:
-        form = LoginForm()
-    
-    return render(request, "login.html", {"form": form})
+                return HttpResponseRedirect(reverse("index"))
+        except User.DoesNotExist:
+            return render(request, "login.html", {"form": LoginForm})
+    return render(request, "login.html", {"form": LoginForm})
+
 
 
 def logout_view(request):
