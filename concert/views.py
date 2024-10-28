@@ -12,7 +12,6 @@ import requests as req
 
 
 # Create your views here.
-
 def signup(request):
     if request.method == "POST":
         username = request.POST.get("username")
@@ -20,15 +19,15 @@ def signup(request):
         try:
             user = User.objects.filter(username=username).first()
             if user:
-                return render(request, "signup.html", {"form": SignUpForm, "message": "user already exist"})
+                return render(request, "signup.html", {"form": SignUpForm, "mesage": "user already exist"})
             else:
-                user = User.objects.create(
-                    username= username, password= make_password(password))
+                user = User.objects.create(username=username, password=make_password(password))
                 login(request, user)
                 return HttpResponseRedirect(reverse("index"))
         except User.DoesNotExist:
             return render(request, "signup.html", {"form": SignUpForm})
     return render(request, "signup.html", {"form": SignUpForm})
+
 
 
 def index(request):
@@ -52,10 +51,29 @@ def photos(request):
     return render(request, "photos.html", {"photos": photos})
 
 def login_view(request):
-    pass
+    if request.method == "POST":
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get("username")
+            password = form.cleaned_data.get("password")
+            
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                login(request, user)
+                return redirect(reverse("index"))
+            else:
+                # Invalid login credentials message
+                return render(request, "login.html", {"form": form, "message": "Invalid username or password"})
+    
+    else:
+        form = LoginForm()
+    
+    return render(request, "login.html", {"form": form})
+
 
 def logout_view(request):
-    pass
+    logout(request)
+    return HttpResponseRedirect(reverse("login"))
 
 def concerts(request):
     pass
